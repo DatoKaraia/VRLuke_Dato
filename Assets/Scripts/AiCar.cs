@@ -3,31 +3,31 @@ using UnityEngine;
 using UnityEngine.AI;
 public class AiCar : MonoBehaviour
 {
-   public Transform[] patrolPoints;           // точки патруля (в инспекторе)
+    public Transform[] patrolPoints;           // patrol points (set in inspector)
     public bool loopPatrol = true;
 
     [Header("Speeds")]
     public float patrolSpeed = 6f;
     public float chaseSpeed = 10f;
-    public float ramSpeedMultiplier = 2.5f;    // умножитель для силы удара
+    public float ramSpeedMultiplier = 2.5f;    // multiplier for ram force
 
     [Header("Detection / Ram")]
-    public float detectionRadius = 25f;        // когда начинает гнаться
-    public float ramDistance = 8f;             // дистанция до игрока для рывка
-    public float ramDuration = 1.0f;           // время физического тарана (сек)
-    public float ramCooldownTime = 3.0f;       // перезарядка между таранчиками (сек)
+    public float detectionRadius = 25f;        // detection distance at which chasing begins
+    public float ramDistance = 8f;             // distance to player that triggers a ram
+    public float ramDuration = 1.0f;           // duration of the physical ram (seconds)
+    public float ramCooldownTime = 3.0f;       // cooldown between rams (seconds)
 
     [Header("Physics ram settings")]
     public ForceMode ramForceMode = ForceMode.VelocityChange;
-    public float baseRamForce = 20f;           // базовая сила для расчёта
+    public float baseRamForce = 20f;           // base force used in calculation
 
-    [Header("References (auto-find если не указаны)")]
-    public Transform player;                   // можно указать вручную, иначе найдёт по тегу "Player"
+    [Header("References (auto-find if not assigned)")]
+    public Transform player;                   // can be assigned manually; otherwise found by tag "Player"
 
-    // Optional: interface name для нанесения урона при столкновении
-    public string damageableMethodName = "TakeDamage"; // вызовет метод на объекте игрока при таране, если есть
+    // Optional: method name for applying damage on collision
+    public string damageableMethodName = "TakeDamage"; // will invoke this method on the player object when ramming, if present
 
-    // внутренности
+    // internal fields
     NavMeshAgent agent;
     Rigidbody rb;
     int patrolIndex = 0;
@@ -47,7 +47,7 @@ public class AiCar : MonoBehaviour
             if (p) player = p.transform;
         }
 
-        // Подготовка: используем NavMeshAgent для перемещений, Rigidbody в кинематике пока
+        // Setup: use NavMeshAgent for movement; keep Rigidbody kinematic for now
         agent.updateRotation = true;
         agent.updateUpAxis = true;
         rb.isKinematic = true;
@@ -72,7 +72,7 @@ public class AiCar : MonoBehaviour
         if (player == null)
             return;
 
-        // таймер перезарядки
+    // cooldown timer
         if (ramCooldown > 0f) ramCooldown -= Time.deltaTime;
 
         float distToPlayer = Vector3.Distance(transform.position, player.position);
@@ -96,7 +96,7 @@ public class AiCar : MonoBehaviour
 
     void PatrolUpdate(float distToPlayer)
     {
-        // если увидел — переключаемся в погоню
+        // if the player is detected — switch to chase
         if (distToPlayer <= detectionRadius)
         {
             currentState = State.Chase;
@@ -104,7 +104,7 @@ public class AiCar : MonoBehaviour
             return;
         }
 
-        // движение между точками
+        // move between patrol points
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.5f)
         {
             NextPatrolPoint();
@@ -132,12 +132,12 @@ public class AiCar : MonoBehaviour
     {
         agent.SetDestination(player.position);
 
-        // если близко и есть заряд — рвёмся таранить
+        // if close enough and off cooldown — start ramming
         if (distToPlayer <= ramDistance && ramCooldown <= 0f)
         {
             StartCoroutine(RamRoutine());
         }
-        else if (distToPlayer > detectionRadius * 1.2f) // если игрок удирает далеко — возвращаемся к патрулю
+        else if (distToPlayer > detectionRadius * 1.2f) // if the player has fled far away — return to patrol
         {
             currentState = State.Patrol;
             agent.speed = patrolSpeed;
@@ -147,7 +147,7 @@ public class AiCar : MonoBehaviour
 
     void RecoverUpdate(float distToPlayer)
     {
-        // пока в кулдауне — либо гони за игроком (медленно), либо возвращаемся на патруль
+        // while cooling down — either chase slowly or return to patrol
         if (distToPlayer <= detectionRadius)
         {
             currentState = State.Chase;
@@ -162,60 +162,69 @@ public class AiCar : MonoBehaviour
     }
 
     IEnumerator RamRoutine()
+{
+    currentState = State.Ram;
+    ramCooldown = ramCooldownTime;
+
+    // disable NavMeshAgent and enable physics
+    agent.isStopped = true;
+    agent.ResetPath();
+    agent.enabled = false;
+
+    rb.isKinematic = false;
+
+    // direction to the player (horizontal only)
+    Vector3 dir = (player.position - transform.position);
+    dir.y = 0f;
+    if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
+    dir.Normalize();
+
+    float agentSpeedEstimate = chaseSpeed;
+    float ramForce = baseRamForce * ramSpeedMultiplier + agentSpeedEstimate * ramSpeedMultiplier;
+
+    rb.AddForce(dir * ramForce, ramForceMode);
+
+    float t = 0f;
+    while (t < ramDuration)
     {
-        currentState = State.Ram;
-        ramCooldown = ramCooldownTime;
-
-        // выключаем NavMeshAgent и включаем физический режим
-        agent.isStopped = true;
-        agent.enabled = false;
-
-        rb.isKinematic = false;
-
-        // направление к игроку (по горизонтали)
-        Vector3 dir = (player.position - transform.position);
-        dir.y = 0f;
-        if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
-        dir.Normalize();
-
-        // рассчёт силы: базовая + модификатор от текущей скорости агента
-        float agentSpeedEstimate = chaseSpeed; // можно более точно, но хватит
-        float ramForce = baseRamForce * ramSpeedMultiplier + agentSpeedEstimate * ramSpeedMultiplier;
-
-        // даём резкий импульс
-        rb.AddForce(dir * ramForce, ramForceMode);
-
-        // включаем ротацию в направлении движения (чтобы выглядело красиво)
-        float t = 0f;
-        while (t < ramDuration)
+        Vector3 vel = rb.linearVelocity;
+        if (vel.sqrMagnitude > 0.1f)
         {
-            // стремимся повернуть тело в направлении скорости (если есть скорость)
-            Vector3 vel = rb.linearVelocity;
-            if (vel.sqrMagnitude > 0.1f)
-            {
-                Quaternion targetRot = Quaternion.LookRotation(new Vector3(vel.x, 0, vel.z));
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 6f);
-            }
-
-            t += Time.deltaTime;
-            yield return null;
+            Quaternion targetRot = Quaternion.LookRotation(new Vector3(vel.x, 0, vel.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 6f);
         }
 
-        // тормозим машину аккуратно
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-
-        // выключаем физику, включаем агент снова
-        rb.isKinematic = true;
-        agent.enabled = true;
-        agent.isStopped = false;
-
-        // после тарана — восстанавливаемся
-        currentState = State.Recover;
-
-        yield break;
+        t += Time.deltaTime;
+        yield return null;
     }
 
+    // stop physics
+    rb.linearVelocity = Vector3.zero;
+    rb.angularVelocity = Vector3.zero;
+    rb.isKinematic = true;
+
+    // try to return the agent to the NavMesh
+    NavMeshHit hit;
+    bool onMesh = NavMesh.SamplePosition(transform.position, out hit, 3f, NavMesh.AllAreas);
+
+    agent.enabled = true;
+
+    if (onMesh)
+    {
+        // warp exactly onto the NavMesh
+        agent.Warp(hit.position);
+        agent.ResetPath();
+        agent.isStopped = false;
+    }
+    else
+    {
+        Debug.LogWarning($"[{name}] Couldn't return AiCar to NavMesh after ram. It's positioned off the NavMesh.");
+        // in that case at least don't crash:
+        agent.isStopped = true;
+    }
+
+    currentState = State.Recover;
+}
     void OnCollisionEnter(Collision collision)
     {
         // Если таранил игрока — пробуем вызвать метод TakeDamage или иной обработчик (опционально)
