@@ -162,60 +162,69 @@ public class AiCar : MonoBehaviour
     }
 
     IEnumerator RamRoutine()
+{
+    currentState = State.Ram;
+    ramCooldown = ramCooldownTime;
+
+    // выключаем NavMeshAgent и включаем физику
+    agent.isStopped = true;
+    agent.ResetPath();
+    agent.enabled = false;
+
+    rb.isKinematic = false;
+
+    // направление к игроку (по горизонтали)
+    Vector3 dir = (player.position - transform.position);
+    dir.y = 0f;
+    if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
+    dir.Normalize();
+
+    float agentSpeedEstimate = chaseSpeed;
+    float ramForce = baseRamForce * ramSpeedMultiplier + agentSpeedEstimate * ramSpeedMultiplier;
+
+    rb.AddForce(dir * ramForce, ramForceMode);
+
+    float t = 0f;
+    while (t < ramDuration)
     {
-        currentState = State.Ram;
-        ramCooldown = ramCooldownTime;
-
-        // выключаем NavMeshAgent и включаем физический режим
-        agent.isStopped = true;
-        agent.enabled = false;
-
-        rb.isKinematic = false;
-
-        // направление к игроку (по горизонтали)
-        Vector3 dir = (player.position - transform.position);
-        dir.y = 0f;
-        if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
-        dir.Normalize();
-
-        // рассчёт силы: базовая + модификатор от текущей скорости агента
-        float agentSpeedEstimate = chaseSpeed; // можно более точно, но хватит
-        float ramForce = baseRamForce * ramSpeedMultiplier + agentSpeedEstimate * ramSpeedMultiplier;
-
-        // даём резкий импульс
-        rb.AddForce(dir * ramForce, ramForceMode);
-
-        // включаем ротацию в направлении движения (чтобы выглядело красиво)
-        float t = 0f;
-        while (t < ramDuration)
+        Vector3 vel = rb.linearVelocity;
+        if (vel.sqrMagnitude > 0.1f)
         {
-            // стремимся повернуть тело в направлении скорости (если есть скорость)
-            Vector3 vel = rb.linearVelocity;
-            if (vel.sqrMagnitude > 0.1f)
-            {
-                Quaternion targetRot = Quaternion.LookRotation(new Vector3(vel.x, 0, vel.z));
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 6f);
-            }
-
-            t += Time.deltaTime;
-            yield return null;
+            Quaternion targetRot = Quaternion.LookRotation(new Vector3(vel.x, 0, vel.z));
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 6f);
         }
 
-        // тормозим машину аккуратно
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-
-        // выключаем физику, включаем агент снова
-        rb.isKinematic = true;
-        agent.enabled = true;
-        agent.isStopped = false;
-
-        // после тарана — восстанавливаемся
-        currentState = State.Recover;
-
-        yield break;
+        t += Time.deltaTime;
+        yield return null;
     }
 
+    // остановили физику
+    rb.linearVelocity = Vector3.zero;
+    rb.angularVelocity = Vector3.zero;
+    rb.isKinematic = true;
+
+    // пробуем вернуть агента на навмеш
+    NavMeshHit hit;
+    bool onMesh = NavMesh.SamplePosition(transform.position, out hit, 3f, NavMesh.AllAreas);
+
+    agent.enabled = true;
+
+    if (onMesh)
+    {
+        // ставим ровно на навмеш
+        agent.Warp(hit.position);
+        agent.ResetPath();
+        agent.isStopped = false;
+    }
+    else
+    {
+        Debug.LogWarning($"[{name}] Не могу вернуть AiCar на NavMesh после тарана. Стоит вне навмеша.");
+        // в таком случае хотя бы не крашимся:
+        agent.isStopped = true;
+    }
+
+    currentState = State.Recover;
+}
     void OnCollisionEnter(Collision collision)
     {
         // Если таранил игрока — пробуем вызвать метод TakeDamage или иной обработчик (опционально)
