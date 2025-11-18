@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+
 public class AiCar : MonoBehaviour
 {
     public Transform[] patrolPoints;           // patrol points (set in inspector)
@@ -14,12 +15,22 @@ public class AiCar : MonoBehaviour
     [Header("Detection / Ram")]
     public float detectionRadius = 25f;        // detection distance at which chasing begins
     public float ramDistance = 8f;             // distance to player that triggers a ram
-    public float ramDuration = 1.0f;           // duration of the physical ram (seconds)
+    public float ramDuration = 1.0f;           // duration of the active ram (seconds)
     public float ramCooldownTime = 3.0f;       // cooldown between rams (seconds)
 
     [Header("Physics ram settings")]
     public ForceMode ramForceMode = ForceMode.VelocityChange;
     public float baseRamForce = 20f;           // base force used in calculation
+
+    [Header("Post-Ram Behaviour")]
+    [Tooltip("How long after the ram the car keeps sliding with physics and AI logic is OFF.")]
+    public float postRamInertiaTime = 10f;     // время, когда физика катается сама по себе
+
+    [Tooltip("How long the AI backs away from the player after recovering.")]
+    public float backOffDuration = 1f;         // сколько секунд отъезжать назад
+
+    [Tooltip("How far away from the player the car tries to move when backing off.")]
+    public float backOffDistance = 5f;         // дистанция отъезда назад
 
     [Header("References (auto-find if not assigned)")]
     public Transform player;                   // can be assigned manually; otherwise found by tag "Player"
@@ -36,15 +47,30 @@ public class AiCar : MonoBehaviour
     enum State { Patrol, Chase, Ram, Recover }
     State currentState = State.Patrol;
 
+    // post-ram / backoff internal data
+    float backOffTimer = 0f;
+    Vector3 backOffTarget;
+
+    // colliders for anti-sticky logic
+    Collider myCollider;
+    Collider playerCollider;
+    bool isIgnoringPlayer = false;
+
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         rb = GetComponent<Rigidbody>();
+        myCollider = GetComponent<Collider>();
 
         if (player == null)
         {
             var p = GameObject.FindGameObjectWithTag("Player");
             if (p) player = p.transform;
+        }
+
+        if (player != null)
+        {
+            playerCollider = player.GetComponent<Collider>();
         }
 
         // Setup: use NavMeshAgent for movement; keep Rigidbody kinematic for now
@@ -72,7 +98,7 @@ public class AiCar : MonoBehaviour
         if (player == null)
             return;
 
-    // cooldown timer
+        // cooldown timer
         if (ramCooldown > 0f) ramCooldown -= Time.deltaTime;
 
         float distToPlayer = Vector3.Distance(transform.position, player.position);
@@ -89,7 +115,7 @@ public class AiCar : MonoBehaviour
                 RecoverUpdate(distToPlayer);
                 break;
             case State.Ram:
-                // ничего в Update — управляется корутиной
+                // no logic here – controlled by coroutine
                 break;
         }
     }
@@ -130,6 +156,7 @@ public class AiCar : MonoBehaviour
 
     void ChaseUpdate(float distToPlayer)
     {
+        // follow the player
         agent.SetDestination(player.position);
 
         // if close enough and off cooldown — start ramming
@@ -147,11 +174,41 @@ public class AiCar : MonoBehaviour
 
     void RecoverUpdate(float distToPlayer)
     {
-        // while cooling down — either chase slowly or return to patrol
+        // BACK-OFF PHASE: отъезжаем назад от игрока
+        if (backOffTimer > 0f)
+        {
+            backOffTimer -= Time.deltaTime;
+
+            // если уже почти доехали до цели — просто ждём остаток времени
+            if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.2f)
+            {
+                // стоим, пока таймер не дойдёт до нуля
+            }
+
+            if (backOffTimer <= 0f)
+            {
+                // Backoff finished → возвращаемся к старой логике
+                if (distToPlayer <= detectionRadius)
+                {
+                    currentState = State.Chase;
+                    agent.speed = chaseSpeed;
+                }
+                else
+                {
+                    currentState = State.Patrol;
+                    agent.speed = patrolSpeed;
+                    agent.SetDestination(patrolPoints[patrolIndex].position);
+                }
+            }
+
+            return;
+        }
+
+        // safety fallback, если по какой-то причине попали в Recover без backOffTimer
         if (distToPlayer <= detectionRadius)
         {
             currentState = State.Chase;
-            agent.speed = chaseSpeed * 0.6f; // чуть медленнее пока остывает
+            agent.speed = chaseSpeed;
         }
         else
         {
@@ -162,79 +219,138 @@ public class AiCar : MonoBehaviour
     }
 
     IEnumerator RamRoutine()
-{
-    currentState = State.Ram;
-    ramCooldown = ramCooldownTime;
-
-    // disable NavMeshAgent and enable physics
-    agent.isStopped = true;
-    agent.ResetPath();
-    agent.enabled = false;
-
-    rb.isKinematic = false;
-
-    // direction to the player (horizontal only)
-    Vector3 dir = (player.position - transform.position);
-    dir.y = 0f;
-    if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
-    dir.Normalize();
-
-    float agentSpeedEstimate = chaseSpeed;
-    float ramForce = baseRamForce * ramSpeedMultiplier + agentSpeedEstimate * ramSpeedMultiplier;
-
-    rb.AddForce(dir * ramForce, ramForceMode);
-
-    float t = 0f;
-    while (t < ramDuration)
     {
-        Vector3 vel = rb.linearVelocity;
-        if (vel.sqrMagnitude > 0.1f)
+        currentState = State.Ram;
+        ramCooldown = ramCooldownTime;
+
+        // disable NavMeshAgent and enable physics
+        agent.isStopped = true;
+        agent.ResetPath();
+        agent.enabled = false;
+
+        rb.isKinematic = false;
+
+        // direction to the player (horizontal only)
+        Vector3 dir = (player.position - transform.position);
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
+        dir.Normalize();
+
+        float agentSpeedEstimate = chaseSpeed;
+        float ramForce = baseRamForce * ramSpeedMultiplier + agentSpeedEstimate * ramSpeedMultiplier;
+
+        // push toward the player
+        rb.AddForce(dir * ramForce, ramForceMode);
+
+        // total time: active ram + residual inertia
+        float totalTime = 0f;
+        float totalDuration = ramDuration + postRamInertiaTime;
+
+        while (totalTime < totalDuration)
         {
-            Quaternion targetRot = Quaternion.LookRotation(new Vector3(vel.x, 0, vel.z));
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 6f);
+            Vector3 vel = rb.linearVelocity;
+            if (vel.sqrMagnitude > 0.1f)
+            {
+                // align visual rotation with movement direction
+                Quaternion targetRot = Quaternion.LookRotation(new Vector3(vel.x, 0, vel.z));
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 6f);
+            }
+
+            totalTime += Time.deltaTime;
+            yield return null;
         }
 
-        t += Time.deltaTime;
-        yield return null;
+        // stop physics
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.isKinematic = true;
+
+        // try to return the agent to the NavMesh
+        NavMeshHit hit;
+        bool onMesh = NavMesh.SamplePosition(transform.position, out hit, 3f, NavMesh.AllAreas);
+
+        agent.enabled = true;
+
+        if (onMesh)
+        {
+            // warp exactly onto the NavMesh
+            agent.Warp(hit.position);
+            agent.ResetPath();
+            agent.isStopped = false;
+        }
+        else
+        {
+            Debug.LogWarning($"[{name}] Couldn't return AiCar to NavMesh after ram. It's positioned off the NavMesh.");
+            // in that case at least don't crash:
+            agent.isStopped = true;
+        }
+
+        // SETUP BACKOFF
+        SetupBackOff();
+
+        currentState = State.Recover;
     }
 
-    // stop physics
-    rb.linearVelocity = Vector3.zero;
-    rb.angularVelocity = Vector3.zero;
-    rb.isKinematic = true;
-
-    // try to return the agent to the NavMesh
-    NavMeshHit hit;
-    bool onMesh = NavMesh.SamplePosition(transform.position, out hit, 3f, NavMesh.AllAreas);
-
-    agent.enabled = true;
-
-    if (onMesh)
+    void SetupBackOff()
     {
-        // warp exactly onto the NavMesh
-        agent.Warp(hit.position);
-        agent.ResetPath();
-        agent.isStopped = false;
-    }
-    else
-    {
-        Debug.LogWarning($"[{name}] Couldn't return AiCar to NavMesh after ram. It's positioned off the NavMesh.");
-        // in that case at least don't crash:
-        agent.isStopped = true;
+        if (player != null)
+        {
+            // направление ОТ игрока
+            Vector3 away = (transform.position - player.position);
+            away.y = 0f;
+            if (away.sqrMagnitude < 0.1f) away = -transform.forward; // на всякий
+            away.Normalize();
+
+            backOffTarget = transform.position + away * backOffDistance;
+        }
+        else
+        {
+            // нет игрока? просто откатываемся назад по своей оси
+            backOffTarget = transform.position - transform.forward * backOffDistance;
+        }
+
+        backOffTimer = backOffDuration;
+
+        if (agent.enabled)
+        {
+            agent.speed = patrolSpeed; // можно и chaseSpeed, но без фанатизма
+            agent.SetDestination(backOffTarget);
+        }
     }
 
-    currentState = State.Recover;
-}
+    IEnumerator TemporaryIgnorePlayerCollision()
+    {
+        if (myCollider == null || playerCollider == null)
+            yield break;
+
+        if (isIgnoringPlayer)
+            yield break;
+
+        isIgnoringPlayer = true;
+        Physics.IgnoreCollision(myCollider, playerCollider, true);
+
+        // игнорим коллизию, пока идёт инерция
+        yield return new WaitForSeconds(postRamInertiaTime);
+
+        Physics.IgnoreCollision(myCollider, playerCollider, false);
+        isIgnoringPlayer = false;
+    }
+
     void OnCollisionEnter(Collision collision)
     {
-        // Если таранил игрока — пробуем вызвать метод TakeDamage или иной обработчик (опционально)
+        // ударились в игрока
         if (collision.transform == player)
         {
+            // если это таран — выключаем "липкость"
+            if (currentState == State.Ram)
+            {
+                StartCoroutine(TemporaryIgnorePlayerCollision());
+            }
+
             // пытаемся вызвать метод на игроке, если он есть
             var comp = player.GetComponent<MonoBehaviour>();
             if (comp != null && !string.IsNullOrEmpty(damageableMethodName))
             {
-                // безопасный вызов (если метод существует)
                 var mi = comp.GetType().GetMethod(damageableMethodName);
                 if (mi != null)
                 {
@@ -244,7 +360,7 @@ public class AiCar : MonoBehaviour
         }
     }
 
-    // Рисуем радиус в инспекторе, чтобы удобнее было настроить
+    // Draw detection gizmos
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
