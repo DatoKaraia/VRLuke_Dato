@@ -1,11 +1,14 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class AiCar : MonoBehaviour
 {
-    [SerializeField] 
-    private ScoreSystem scoreSystem;
+
+    [SerializeField]
+     ScoreSystem scoreSystem;
+
     public Transform[] patrolPoints;           // patrol points (set in inspector)
     public bool loopPatrol = true;
 
@@ -340,6 +343,7 @@ public class AiCar : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
+
         scoreSystem.AddCarDamaged(1);
         // ударились в игрока
         if (collision.transform == player)
