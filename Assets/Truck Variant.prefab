@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &2639132611581886977
+--- !u!1001 &9093972446184481967
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -46,7 +46,7 @@ PrefabInstance:
     - target: {fileID: 1512391818188800210, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.06
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1512391818188800210, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
@@ -110,25 +110,25 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1512391818188800215, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2104981878270105711}
+      addedObject: {fileID: 1884080064692146731}
     - targetCorrespondingSourceObject: {fileID: 1512391818188800215, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1185541531341039954}
+      addedObject: {fileID: 1451997195171759215}
   m_SourcePrefab: {fileID: 100100000, guid: 6a31af6daaf9f304cab2b9fab23909d3, type: 3}
---- !u!1 &3484956499328172758 stripped
+--- !u!1 &7694786555388224632 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1512391818188800215, guid: 6a31af6daaf9f304cab2b9fab23909d3,
     type: 3}
-  m_PrefabInstance: {fileID: 2639132611581886977}
+  m_PrefabInstance: {fileID: 9093972446184481967}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2104981878270105711
+--- !u!114 &1884080064692146731
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3484956499328172758}
+  m_GameObject: {fileID: 7694786555388224632}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c33e9a6eb1a36045a57c552cd10c8a9, type: 3}
@@ -141,29 +141,27 @@ MonoBehaviour:
   - {fileID: 0}
   loopPatrol: 1
   patrolSpeed: 5
-  chaseSpeed: 8.6
+  chaseSpeed: 5
   ramSpeedMultiplier: 1
-  detectionRadius: 9.4
-  ramDistance: 5.8
-  ramDuration: 5.11
-  ramCooldownTime: 1
+  detectionRadius: 25
+  ramDistance: 8
+  ramDuration: 1
+  ramCooldownTime: 10
   ramForceMode: 2
-  baseRamForce: 36
-  postRamInertiaTime: 28.66
+  baseRamForce: 20
+  postRamInertiaTime: 10
   backOffDuration: 1
   backOffDistance: 5
-  canChasePlayer: 1
-  canChaseOtherCars: 1
   player: {fileID: 0}
   damageableMethodName: TakeDamage
---- !u!195 &1185541531341039954
+--- !u!195 &1451997195171759215
 NavMeshAgent:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3484956499328172758}
-  m_Enabled: 0
+  m_GameObject: {fileID: 7694786555388224632}
+  m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
   m_Speed: 10
@@ -172,7 +170,7 @@ NavMeshAgent:
   m_AngularSpeed: 452.66
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 0
+  m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
   m_BaseOffset: 0
