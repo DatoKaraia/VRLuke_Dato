@@ -2982,6 +2982,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
         type: 3}
+      propertyPath: ramCooldownTime
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
+        type: 3}
       propertyPath: postRamInertiaTime
       value: 2
       objectReference: {fileID: 0}
@@ -6070,6 +6075,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
         type: 3}
+      propertyPath: ramCooldownTime
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
+        type: 3}
       propertyPath: postRamInertiaTime
       value: 2
       objectReference: {fileID: 0}
@@ -7010,6 +7020,11 @@ PrefabInstance:
         type: 3}
       propertyPath: backOffDuration
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
+        type: 3}
+      propertyPath: ramCooldownTime
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
         type: 3}
@@ -10728,6 +10743,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
         type: 3}
+      propertyPath: ramCooldownTime
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
+        type: 3}
       propertyPath: postRamInertiaTime
       value: 2
       objectReference: {fileID: 0}
@@ -10901,6 +10921,11 @@ PrefabInstance:
         type: 3}
       propertyPath: backOffDuration
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
+        type: 3}
+      propertyPath: ramCooldownTime
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8116113168198673291, guid: 691b95a608279724ea9c5814c048cdbe,
         type: 3}
