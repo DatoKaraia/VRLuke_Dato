@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &9093972446184481967
+--- !u!1001 &7726110588016788546
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -13,12 +13,52 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1512391816111541918, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391817124693431, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391817151670282, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391818067318708, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391818188800200, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391818188800201, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391818188800203, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1512391818188800207, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1512391818188800208, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391818188800209, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -98,10 +138,35 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1512391818188800212, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_ImplicitCom
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391818188800212, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_CenterOfMass.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1512391818188800213, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1512391818188800215, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
       propertyPath: m_Name
       value: Truck Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 9107429417223789108, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9107429417223789114, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -110,25 +175,29 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1512391818188800215, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1884080064692146731}
+      addedObject: {fileID: 8116113168198673291}
     - targetCorrespondingSourceObject: {fileID: 1512391818188800215, guid: 6a31af6daaf9f304cab2b9fab23909d3,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1451997195171759215}
+      addedObject: {fileID: 2112870880883443440}
+    - targetCorrespondingSourceObject: {fileID: 1512391818188800215, guid: 6a31af6daaf9f304cab2b9fab23909d3,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5070831832772314004}
   m_SourcePrefab: {fileID: 100100000, guid: 6a31af6daaf9f304cab2b9fab23909d3, type: 3}
---- !u!1 &7694786555388224632 stripped
+--- !u!1 &9206959615419991189 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1512391818188800215, guid: 6a31af6daaf9f304cab2b9fab23909d3,
     type: 3}
-  m_PrefabInstance: {fileID: 9093972446184481967}
+  m_PrefabInstance: {fileID: 7726110588016788546}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1884080064692146731
+--- !u!114 &8116113168198673291
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7694786555388224632}
+  m_GameObject: {fileID: 9206959615419991189}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c33e9a6eb1a36045a57c552cd10c8a9, type: 3}
@@ -146,7 +215,7 @@ MonoBehaviour:
   detectionRadius: 25
   ramDistance: 8
   ramDuration: 1
-  ramCooldownTime: 10
+  ramCooldownTime: 0
   ramForceMode: 2
   baseRamForce: 20
   postRamInertiaTime: 10
@@ -154,13 +223,13 @@ MonoBehaviour:
   backOffDistance: 5
   player: {fileID: 0}
   damageableMethodName: TakeDamage
---- !u!195 &1451997195171759215
+--- !u!195 &2112870880883443440
 NavMeshAgent:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7694786555388224632}
+  m_GameObject: {fileID: 9206959615419991189}
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
@@ -173,6 +242,27 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: 0.29
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!65 &5070831832772314004
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9206959615419991189}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.2865815, y: 0.7237123, z: 5.1979585}
+  m_Center: {x: 0.078149274, y: 0.13814348, z: -0.063822486}
